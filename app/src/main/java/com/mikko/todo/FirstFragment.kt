@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import com.mikko.todo.adapters.EventsAdapter
 import com.mikko.todo.databinding.FragmentFirstBinding
 
@@ -28,6 +29,8 @@ class FirstFragment : Fragment() {
     ): View? {
         val anim = AnimationUtils.loadAnimation(requireContext(), R.anim.start_anim)
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
+        val animFab = AnimationUtils.loadAnimation(requireContext(), R.anim.fab_anim)
+        binding.fab.startAnimation(animFab)
         binding.recyclerEvents.startAnimation(anim)
         binding.noEvents.startAnimation(anim)
 
@@ -37,12 +40,19 @@ class FirstFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        var count = 0
         binding.recyclerEvents.adapter = adapter
         if(binding.recyclerEvents.adapter?.itemCount != 0)
             binding.noEvents.visibility = View.GONE
         println("list = ${adapter.items}" +
                 "SIZE = ${binding.recyclerEvents.adapter?.itemCount}")
-
+        binding.fab.setOnClickListener { view ->
+            adapter.items.add("$count")
+            Snackbar.make(view, "Element $count was added!", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
+            count++
+            adapter.notifyDataSetChanged()
+        }
         /*binding.buttonFirst.setOnClickListener {
             findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
         }

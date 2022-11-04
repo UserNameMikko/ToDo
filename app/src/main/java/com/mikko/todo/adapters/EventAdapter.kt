@@ -10,7 +10,7 @@ import com.mikko.todo.databinding.EventBinding
 
 class EventsAdapter: RecyclerView.Adapter<EventsAdapter.EventsViewHolder>(){
 
-    var items = listOf<String>("1", "2", "3", "4")
+    var items = mutableListOf<String>("1", "2", "3", "4")
         set(value) {
             val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
                 override fun getOldListSize() = field.size
@@ -39,6 +39,7 @@ class EventsAdapter: RecyclerView.Adapter<EventsAdapter.EventsViewHolder>(){
 
     override fun onBindViewHolder(holder: EventsViewHolder, position: Int) {
         holder.bind(items[position])
+
         println("element was bind")
     }
 
@@ -49,6 +50,13 @@ class EventsAdapter: RecyclerView.Adapter<EventsAdapter.EventsViewHolder>(){
 
         fun bind(text: String) {
             binding.textField.text = text
+            binding.checkbox.setOnCheckedChangeListener { compoundButton, _ ->
+                if (compoundButton.isChecked) {
+                    items.remove(text)
+                    binding.checkbox.isChecked = false
+                    notifyDataSetChanged()
+                }
+            }
         }
     }
 
