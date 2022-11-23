@@ -7,10 +7,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.mikko.todo.R
 import com.mikko.todo.databinding.EventBinding
+import kotlinx.coroutines.delay
 
-class EventsAdapter: RecyclerView.Adapter<EventsAdapter.EventsViewHolder>(){
-
-    var items = mutableListOf<String>("1", "2", "3", "4")
+class EventsAdapter(
+    val checkList: () -> Unit
+): RecyclerView.Adapter<EventsAdapter.EventsViewHolder>(){
+        var items = mutableListOf<String>()
         set(value) {
             val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
                 override fun getOldListSize() = field.size
@@ -39,7 +41,6 @@ class EventsAdapter: RecyclerView.Adapter<EventsAdapter.EventsViewHolder>(){
 
     override fun onBindViewHolder(holder: EventsViewHolder, position: Int) {
         holder.bind(items[position])
-
         println("element was bind")
     }
 
@@ -53,8 +54,9 @@ class EventsAdapter: RecyclerView.Adapter<EventsAdapter.EventsViewHolder>(){
             binding.checkbox.setOnCheckedChangeListener { compoundButton, _ ->
                 if (compoundButton.isChecked) {
                     items.remove(text)
-                    binding.checkbox.isChecked = false
+                    checkList()
                     notifyDataSetChanged()
+                    binding.checkbox.isChecked = false
                 }
             }
         }
