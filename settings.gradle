@@ -1,15 +1,21 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
+        maven { url 'https://jcenter.bintray.com/'}
+        maven { url 'https://jitpack.io/'}
         mavenCentral()
     }
 }
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
+        maven { url 'https://jcenter.bintray.com/'}
         mavenCentral()
+        maven { url 'https://jitpack.io/'}
     }
 }
 rootProject.name = "ToDo"

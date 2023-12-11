@@ -30,7 +30,8 @@ class FirstFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
-    private val adapter = EventsAdapter{ checkList() }
+    private val adapter = EventsAdapter { checkList() }
+    private var items = mutableListOf<String>()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -39,6 +40,7 @@ class FirstFragment : Fragment() {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         val animFab = AnimationUtils.loadAnimation(requireContext(), R.anim.fab_anim)
         binding.fab.startAnimation(animFab)
+        adapter.context = binding.root.context
         binding.recyclerEvents.startAnimation(anim)
         binding.noEvents.startAnimation(anim)
         return binding.root
@@ -49,21 +51,29 @@ class FirstFragment : Fragment() {
         binding.recyclerEvents.adapter = adapter
         restoreData()
         checkList()
-        println("list = ${adapter.items}" +
-                "SIZE = ${binding.recyclerEvents.adapter?.itemCount}")
+        when (binding.root.context.resources.configuration.uiMode and
+                Configuration.UI_MODE_NIGHT_MASK) {
+            Configuration.UI_MODE_NIGHT_NO -> {
+                binding.sadFace.setImageResource(R.drawable.sad_face_light_theme)
+            }
+            Configuration.UI_MODE_NIGHT_YES -> {
+                binding.sadFace.setImageResource(R.drawable.sad_face_dark_theme)
+            }
+        }
+        println("list = ${adapter.currentList}" +
+                "SIZE = ${adapter.currentList.size}")
         binding.fab.setOnClickListener {
             //adapter.items.add("$count")
             val text = EditText(requireActivity())
-
             val dialog = AlertDialog.Builder(requireContext())
                 .setTitle("Add new note")
                 .setView(text)
                 .setMessage("What do you want to do today?")
                 .setPositiveButton("ADD") { _, _ ->
                     if (text.text.toString().isNotEmpty()){
-                        adapter.items.add(text.text.toString())
-                        adapter.notifyDataSetChanged()
-                        checkList()
+                        items = adapter.currentList.toMutableList()
+                        items.add(text.text.toString())
+                        adapter.submitList(items)
                         Toast.makeText(requireContext(), "added", Toast.LENGTH_LONG).show()
                     } else {
                         Toast.makeText(
@@ -75,7 +85,11 @@ class FirstFragment : Fragment() {
                 .setNegativeButton("Discard"){ dialog, id ->
                     Toast.makeText(requireContext(), "canceled", Toast.LENGTH_LONG).show()
                 }
-                .show()
+                //.show()
+                .create()
+            if (dialog.window != null)
+                dialog.window!!.attributes.windowAnimations = R.style.SlidingDialogAnimation
+            dialog.show()
             when (binding.root.context.resources.configuration.uiMode and
                     Configuration.UI_MODE_NIGHT_MASK) {
                 Configuration.UI_MODE_NIGHT_NO -> {
@@ -101,8 +115,8 @@ class FirstFragment : Fragment() {
                 .setTitle("Erase All")
                 .setMessage("Do you really want to erase all data?")
                 .setPositiveButton("Yes") { _, _ ->
-                        adapter.items = mutableListOf()
-                        adapter.notifyDataSetChanged()
+                        adapter.submitList(mutableListOf())
+                        items = mutableListOf()
                         checkList()
                         Toast.makeText(
                             requireContext(), "data erased", Toast.LENGTH_LONG
@@ -136,18 +150,38 @@ class FirstFragment : Fragment() {
     }
 
     private fun checkList() {
-        binding.noEvents.visibility = if (adapter.items.isNotEmpty()) View.GONE
-        else View.VISIBLE
+        val showAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.dialog_show)
+        if (adapter.currentList.isNotEmpty()) {
+            binding.sadFace.visibility = View.GONE
+            Log.e("Is Not Empty", "af")
+
+            binding.noEvents.visibility = View.GONE
+        } else {
+            Log.e("Is Empty", "tr")
+            binding.sadFace.visibility = View.VISIBLE
+            when (binding.root.context.resources.configuration.uiMode and
+                    Configuration.UI_MODE_NIGHT_MASK) {
+                Configuration.UI_MODE_NIGHT_NO -> {
+                    binding.sadFace.setImageResource(R.drawable.sad_face_light_theme)
+                }
+                Configuration.UI_MODE_NIGHT_YES -> {
+                    binding.sadFace.setImageResource(R.drawable.sad_face_dark_theme)
+                }
+            }
+            binding.sadFace.startAnimation(showAnim)
+            binding.noEvents.startAnimation(showAnim)
+            binding.noEvents.visibility = View.VISIBLE
+        }
+
     }
     private fun restoreData() {
         val prefs = requireContext().getSharedPreferences("data", Context.MODE_PRIVATE)
         val encodedList = prefs.getString("TodoList", null)
         if (encodedList != null) {
             val decodedList = Json.decodeFromString<MutableList<String>>(encodedList)
-            adapter.items = decodedList
-
-        } else adapter.items = mutableListOf()
-        adapter.notifyDataSetChanged()
+            items = decodedList
+            adapter.submitList(items)
+        } else adapter.submitList(mutableListOf())
         Log.d("RESTORE", "SUCCESS")
     }
     private fun saveData(list: MutableList<String>) {
@@ -161,7 +195,7 @@ class FirstFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        saveData(adapter.items)
+        saveData(adapter.currentList)
     }
     override fun onDestroyView() {
         super.onDestroyView()
