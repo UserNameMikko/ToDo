@@ -20,4 +20,11 @@
         <item name="backgroundTint">@color/white</item>
         <item name="android:textColor">@color/black</item>
     </style>
+    <style name="card">
+        <item name="cardBackgroundColor">@color/default_gray</item>
+    </style>
+
+    <style name="arrow">
+        <item name="backgroundTint">@color/white</item>
+    </style>
 </resources>

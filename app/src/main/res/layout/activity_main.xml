@@ -16,7 +16,16 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/Theme.ToDo.PopupOverlay" />
+            app:popupTheme="@style/Theme.ToDo.PopupOverlay">
+            <ImageButton
+                android:id="@+id/dark_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.Button.TextButton.Dialog.Icon"
+                android:src="@drawable/baseline_dark_mode_24_light"
+                android:layout_gravity="end"
+                />
+        </androidx.appcompat.widget.Toolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 
